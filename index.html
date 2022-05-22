@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title></title>
+    <script crossorigin src="https://cdn.jsdelivr.net/pyodide/v0.20.0/full/pyodide.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body>
+    <div id="app"></div>
+    <script>
+        var App = (function () {
+            var State = {
+                titles: [],
+                recommended: {
+                    movies: [],
+                    shows: []
+                },
+                titlesAnalysed: {
+                    movies: {},
+                    shows: {}
+                },
+            }
+
+            function render() {
+                app.innerHTML = view();
+                return App
+            }
+
+            
+            function view() {
+                return `
+                    ${State.titles.length > 0 ? State.titles.map(function (title) {
+                    return `
+                            <div>
+                                <div>title: ${title.title}</div>
+                            </div>
+                        `
+                    }).join('') : `
+                            <div>Loading Titles</div>
+                        `}
+                    <div>
+                        Recommened Movies:
+                        ${State.recommended.movies.length > 0 ? State.recommended.movies.map(function (movie) {
+                    return `
+                            <div>
+                                <div>title: ${movie.title}</div>
+                                <div>year: ${movie.year}</div>
+                                <div>genre: ${movie.genre}</div>
+                                <div>type: ${movie.type}</div>
+                            </div>
+                        `
+                    }).join('') : `
+                            <div>Loading Movies</div>
+                        `}
+                    </div>
+                    <div>
+                        Recommened Shows:
+                        ${State.recommended.shows.length > 0 ? State.recommended.shows.map(function (show) {
+                    return `
+                            <div>
+                                <div>title: ${show.title}</div>
+                                <div>year: ${show.year}</div>
+                                <div>genre: ${show.genre}</div>
+                                <div>type: ${show.type}</div>
+                            </div>
+                        `
+                    }).join('') : `
+                            <div>Loading Shows</div>
+                        `}
+                    </div>
+                    <div>
+                        Titles Analysed:
+                        ${State.titlesAnalysed.movies.length > 0 ? State.titlesAnalysed.movies.map(function (movie) {
+                        return `
+                                <div>
+                                    <div>title: ${movie.title}</div>
+                                    <div>year: ${movie.year}</div>
+                                    <div>genre: ${movie.genre}</div>
+                                    <div>type: ${movie.type}</div>
+                                </div>
+                            `
+                        }).join('') : `
+                                <div>Loading Movies</div>
+                            `}
+                    </div>
+                    <div>
+                        Year with the most shows:
+                        ${State.titlesAnalysed.shows.length > 0 ? State.titlesAnalysed.shows.map(function (show) {
+                        return `
+                                <div>
+                                    <div>Year: ${show.release_year}</div>
+                                    <div>Count: ${show.id}</div>
+                                </div>
+                            `
+                        }).join('') : `
+                                <div>Loading Shows</div>
+                            `}
+                    </div>
+                    <div>
+                        Genre with the most shows:
+                        ${State.titlesAnalysed.movies.length > 0 ? State.titlesAnalysed.movies.map(function (movie) {
+                        return `
+                                <div>
+                                    <div>Year: ${movie.release_year}</div>
+                                    <div>Count: ${movie.id}</div>
+                                </div>
+                            `
+                        }).join('') : `
+                                <div>Loading movies</div>
+                            `}
+
+                `
+            }
+
+            function setTitles(titles) {
+                titlesObj = JSON.parse(titles);
+                State.titles = titlesObj.data;
+                App
+                .render()
+                .setupEvents();
+            }
+
+            function setRecommended(movies, shows) {
+                State.recommended.movies = JSON.parse(movies).data;
+                State.recommended.shows = JSON.parse(shows).data;
+                App
+                .render()
+                .setupEvents();
+            }
+
+            function setTitlesAnalysed(movies, shows) {
+                State.titlesAnalysed.movies = JSON.parse(movies).data;
+                State.titlesAnalysed.shows = JSON.parse(shows).data;
+                App
+                .render()
+                .setupEvents();
+            }
+
+            function setupEvents() {
+                console.log("setupEvents");
+            }
+
+
+            return { State, render, setupEvents, setTitles, setRecommended, setTitlesAnalysed }
+
+        })();
+
+        App
+            .render()
+            .setupEvents();
+
+        async function main() {
+            var pyodide = await loadPyodide({
+                indexURL : "https://cdn.jsdelivr.net/pyodide/v0.20.0/full/"
+            });
+            await pyodide.loadPackage("pandas");
+            await pyodide.runPythonAsync(`
+                import js
+                import pandas as pd
+                from pyodide.http import pyfetch
+                response = await pyfetch("https://raw.githubusercontent.com/amirtds/kaggle-netflix-tv-shows-and-movies/main/titles.csv")
+                if response.status == 200:
+                    with open("titles.csv", "wb") as f:
+                        f.write(await response.bytes())
+                # 1. loading the csv file
+                all_titles = pd.read_csv("titles.csv")
+                # 2. Sanitizing the data
+                # Drop unnecessary columns
+                all_titles = all_titles.drop(
+                    columns=[
+                        "age_certification",
+                        "seasons",
+                        "imdb_id",
+                    ]
+                )
+                # Drop rows with null values for important columns
+                sanitized_titles = all_titles.dropna(
+                    subset=[
+                        "id",
+                        "title",
+                        "release_year",
+                        "genres",
+                        "production_countries",
+                        "imdb_score",
+                        "imdb_votes",
+                        "tmdb_score",
+                    ]
+                )
+                titles_list = sanitized_titles.head(10).to_json(orient="table")
+                # Set titles to first 10 titles
+                js.window.App.setTitles(titles_list)
+
+                # 3. Create recommendation list for Shows and Movies
+                # 3.1 add new colum recommendation_score
+                recommened_titles = sanitized_titles.copy()
+                # Set recommendation score based on imdb votes, imdb score, tmdb score and popularity
+                recommened_titles["recommendation_score"] = (
+                    sanitized_titles["imdb_votes"] * 0.4
+                    + sanitized_titles["imdb_score"] * 0.3
+                    + sanitized_titles["tmdb_score"] * 0.2
+                    + sanitized_titles["tmdb_popularity"] * 0.2
+                )
+
+                recommened_movies = recommened_titles.loc[recommened_titles["type"] == "MOVIE"].sort_values(
+                    by="recommendation_score", ascending=False
+                )
+
+                recommended_shows = recommened_titles.loc[recommened_titles["type"] == "SHOW"].sort_values(
+                    by="recommendation_score", ascending=False
+                )
+
+                recommended_list_mv = recommened_movies.head(5).to_json(orient="table")
+                recommended_list_shw = recommended_shows.head(5).to_json(orient="table")
+                js.window.App.setRecommended(recommended_list_mv, recommended_list_shw)
+
+                # 4. Get year that produced the most movies and titles
+                year_most_movies = sanitized_titles.loc[recommened_titles["type"] == "MOVIE"].groupby("release_year").count()["id"].sort_values(ascending=False).head(1)
+                year_most_shows = sanitized_titles.loc[recommened_titles["type"] == "SHOW"].groupby("release_year").count()["id"].sort_values(ascending=False).head(1)
+                js.window.App.setTitlesAnalysed(year_most_movies.to_json(orient="table"), year_most_shows.to_json(orient="table"))
+                
+                # Get year that produced the most movies and titles
+                year_most_movies = sanitized_titles.loc[recommened_titles["type"] == "MOVIE"].groupby("release_year").count()["id"].sort_values(ascending=False).head(1).to_json(orient="table")
+                year_most_titles = sanitized_titles.loc[recommened_titles["type"] == "SHOW"].groupby("release_year").count()["id"].sort_values(ascending=False).head(1).to_json(orient="table")
+                js.window.App.setTitlesAnalysed(year_most_movies, year_most_titles)
+
+                
+            `);
+            pyodide.runPython("test.py");
+        }
+        main();
+
+    </script>
+
+
+
+</body>
+
+</html>
