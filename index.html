@@ -7,8 +7,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
-<body>
-    <div id="app"></div>
+<body class="bg-slate-800">
+    <div id="app" class="relative h-full max-w-7xl mx-auto my-16"></div>
     <script>
         var App = (function () {
             var State = {
@@ -28,89 +28,145 @@
                 return App
             }
 
-            
+
             function view() {
                 return `
-                    ${State.titles.length > 0 ? State.titles.map(function (title) {
-                    return `
-                            <div>
-                                <div>title: ${title.title}</div>
-                            </div>
-                        `
-                    }).join('') : `
-                            <div>Loading Titles</div>
-                        `}
-                    <div>
-                        Recommened Movies:
-                        ${State.recommended.movies.length > 0 ? State.recommended.movies.map(function (movie) {
-                    return `
-                            <div>
-                                <div>title: ${movie.title}</div>
-                                <div>year: ${movie.year}</div>
-                                <div>genre: ${movie.genre}</div>
-                                <div>type: ${movie.type}</div>
-                            </div>
-                        `
-                    }).join('') : `
-                            <div>Loading Movies</div>
-                        `}
-                    </div>
-                    <div>
-                        Recommened Shows:
-                        ${State.recommended.shows.length > 0 ? State.recommended.shows.map(function (show) {
-                    return `
-                            <div>
-                                <div>title: ${show.title}</div>
-                                <div>year: ${show.year}</div>
-                                <div>genre: ${show.genre}</div>
-                                <div>type: ${show.type}</div>
-                            </div>
-                        `
-                    }).join('') : `
-                            <div>Loading Shows</div>
-                        `}
-                    </div>
-                    <div>
-                        Titles Analysed:
-                        ${State.titlesAnalysed.movies.length > 0 ? State.titlesAnalysed.movies.map(function (movie) {
-                        return `
-                                <div>
-                                    <div>title: ${movie.title}</div>
-                                    <div>year: ${movie.year}</div>
-                                    <div>genre: ${movie.genre}</div>
-                                    <div>type: ${movie.type}</div>
+                        <div class="px-4 sm:px-6 lg:px-8">
+                            <div class="sm:flex sm:items-center">
+                                <div class="sm:flex-auto">
+                                    <h1 class="text-4xl font-semibold text-gray-200">Netflix Movies and Shows</h1>
                                 </div>
-                            `
-                        }).join('') : `
-                                <div>Loading Movies</div>
-                            `}
-                    </div>
-                    <div>
-                        Year with the most shows:
-                        ${State.titlesAnalysed.shows.length > 0 ? State.titlesAnalysed.shows.map(function (show) {
-                        return `
-                                <div>
-                                    <div>Year: ${show.release_year}</div>
-                                    <div>Count: ${show.id}</div>
+                            </div>
+                            <div class="mt-8 flex flex-col">
+                                <div class="-my-2 -mx-4 overflow-x-auto sm:-mx-6 lg:-mx-8">
+                                    <div class="inline-block min-w-full py-2 align-middle md:px-6 lg:px-8">
+                                        <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
+                                        <table class="min-w-full divide-y divide-gray-300">
+                                            <thead class="bg-gray-50">
+                                            <tr>
+                                                <th scope="col" class="whitespace-nowrap py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">Title</th>
+                                                <th scope="col" class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900">Type</th>
+                                                <th scope="col" class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900">Release Year</th>
+                                                <th scope="col" class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900">Genere</th>
+                                                <th scope="col" class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900">Production Country</th>
+                                                <th scope="col" class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900"></th>
+                                            </tr>
+                                            </thead>
+                                            <tbody class="divide-y divide-gray-200 bg-white">
+                                                ${State.titles.length > 0 ? State.titles.map(function (title) {
+                                                return `
+                                                    <tr id=${title.id}>
+                                                        <td class="whitespace-nowrap py-2 pl-4 pr-3 text-sm text-gray-500 sm:pl-6">${title.title}</td>
+                                                        <td class="whitespace-nowrap px-2 py-2 text-sm font-medium text-gray-900">${title.type}</td>
+                                                        <td class="whitespace-nowrap px-2 py-2 text-sm text-gray-500">${title.release_year}</td>
+                                                        <td class="whitespace-nowrap px-2 py-2 text-sm text-gray-500">${title.genres}</td>
+                                                        <td class="whitespace-nowrap px-2 py-2 text-sm text-gray-500">${title.production_countries}</td>
+                                                        <td class="whitespace-nowrap px-2 py-2 text-sm text-gray-500">
+                                                            <a id=${title.id} class="delete text-red-600 hover:text-red-900">Delete</a>
+                                                        </td>
+                                                    </tr>
+                                                `
+                                                }).join('') : `
+                                                    <tr>
+                                                        <td class="whitespace-nowrap py-2 pl-4 pr-3 text-sm text-gray-500 sm:pl-6">Titles are loading...</td>
+                                                        <td class="whitespace-nowrap px-2 py-2 text-sm font-medium text-gray-900">Titles are loading...</td>
+                                                        <td class="whitespace-nowrap px-2 py-2 text-sm text-gray-500">Titles are loading...</td>
+                                                        <td class="whitespace-nowrap px-2 py-2 text-sm text-gray-500">Titles are loading...</td>
+                                                        <td class="whitespace-nowrap px-2 py-2 text-sm text-gray-500">Titles are loading...</td>
+                                                        <td class="whitespace-nowrap px-2 py-2 text-sm text-gray-500">Titles are loading...</td>
+                                                `}
+                                            </tbody>
+                                        </table>
+                                        </div>
+                                    </div>
                                 </div>
-                            `
-                        }).join('') : `
-                                <div>Loading Shows</div>
-                            `}
-                    </div>
-                    <div>
-                        Genre with the most shows:
-                        ${State.titlesAnalysed.movies.length > 0 ? State.titlesAnalysed.movies.map(function (movie) {
-                        return `
-                                <div>
-                                    <div>Year: ${movie.release_year}</div>
-                                    <div>Count: ${movie.id}</div>
-                                </div>
-                            `
-                        }).join('') : `
-                                <div>Loading movies</div>
-                            `}
+                            </div>
+                        </div>
+                        <div class="flex">
+                            <div class="px-4 sm:px-6 lg:px-8 my-8 w-1/2">
+                                <p class="text-4xl font-semibold text-slate-100">Recommended Movies</p>
+                                <ul role="list" class="divide-y divide-gray-200">
+                                    ${State.recommended.movies.length > 0 ? State.recommended.movies.map(function (movie) {
+                                        return `
+                                            <li class="relative bg-white py-5 px-4 hover:bg-gray-50 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600 rounded-md my-2">
+                                                <div class="flex justify-between space-x-3">
+                                                <div class="min-w-0 flex-1">
+                                                        <p class="text-sm font-semibold text-gray-900 truncate">${movie.title}</p>
+                                                        <p class="text-sm text-gray-500 truncate">${movie.description}</p>
+                                                </div>
+                                                <time datetime="" class="flex-shrink-0 whitespace-nowrap text-sm text-gray-500">${movie.release_year}</time>
+                                                </div>
+                                            </li>
+                                            `
+                                    }).join('') : `
+                                    <li class="relative bg-white py-5 px-4 hover:bg-gray-50 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600">
+                                        <div class="flex justify-between space-x-3">
+                                            <div class="min-w-0 flex-1">
+                                                    <p class="text-sm font-medium text-gray-900 truncate">Loading...</p>
+                                            </div>
+                                        </div>
+                                    </li>
+                                </ul>
+                                `}
+                            </div>
 
+                            <div class="px-4 sm:px-6 lg:px-8 my-8 w-1/2">
+                                <p class="text-4xl font-semibold text-slate-100">Recommended Shows</p>
+                                <ul role="list" class="divide-y divide-gray-200">
+                                    ${State.recommended.shows.length > 0 ? State.recommended.shows.map(function (show) {
+                                        return `
+                                            <li class="relative bg-white py-5 px-4 hover:bg-gray-50 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600 rounded-md my-2">
+                                                <div class="flex justify-between space-x-3">
+                                                <div class="min-w-0 flex-1">
+                                                        <p class="text-sm font-semibold text-gray-900 truncate">${show.title}</p>
+                                                        <p class="text-sm text-gray-500 truncate">${show.description}</p>
+                                                </div>
+                                                <time datetime="" class="flex-shrink-0 whitespace-nowrap text-sm text-gray-500">${show.release_year}</time>
+                                                </div>
+                                            </li>
+                                            `
+                                    }).join('') : `
+                                        <li class="relative bg-white py-5 px-4 hover:bg-gray-50 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600">
+                                            <div class="flex justify-between space-x-3">
+                                                <div class="min-w-0 flex-1">
+                                                        <p class="text-sm font-medium text-gray-900 truncate">Loading...</p>
+                                                </div>
+                                            </div>
+                                        </li>
+                                    </ul>
+                                `}
+                            </div>
+                        </div>
+                        <div class="px-4 sm:px-6 lg:px-8 my-8">
+                            <div>
+                                <h3 class="text-4xl font-semibold text-slate-100">Interesting Facts</h3>
+                                    <dl class="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-3">
+                                        <div class="px-4 py-5 bg-white shadow rounded-lg overflow-hidden sm:p-6">
+                                            ${State.titlesAnalysed.movies.length > 0 ? State.titlesAnalysed.movies.map(function (movie) {
+                                                    return `
+                                                    <dt class="text-sm font-medium text-gray-500 truncate">Movies produced in ${movie.release_year}</dt>
+                                                    <dd class="mt-1 text-3xl font-semibold text-gray-900">${movie.id}</dd>
+                                                    `
+                                                }).join('') : `
+                                                    Loading...
+                                                
+                                            `}
+                                        </div>
+
+                                        <div class="px-4 py-5 bg-white shadow rounded-lg overflow-hidden sm:p-6">
+                                            ${State.titlesAnalysed.shows.length > 0 ? State.titlesAnalysed.shows.map(function (show) {
+                                                    return `
+                                                    <dt class="text-sm font-medium text-gray-500 truncate">Shows produced in ${show.release_year}</dt>
+                                                    <dd class="mt-1 text-3xl font-semibold text-gray-900">${show.id}</dd>
+                                                    `
+                                                }).join('') : `
+                                                    Loading...
+                                                
+                                            `}
+                                        </div>
+                                    </dl>
+                                </div>
+                        </div>
                 `
             }
 
@@ -118,32 +174,42 @@
                 titlesObj = JSON.parse(titles);
                 State.titles = titlesObj.data;
                 App
-                .render()
-                .setupEvents();
+                    .render()
+                    .setupEvents();
             }
 
             function setRecommended(movies, shows) {
                 State.recommended.movies = JSON.parse(movies).data;
                 State.recommended.shows = JSON.parse(shows).data;
                 App
-                .render()
-                .setupEvents();
+                    .render()
+                    .setupEvents();
             }
 
             function setTitlesAnalysed(movies, shows) {
                 State.titlesAnalysed.movies = JSON.parse(movies).data;
                 State.titlesAnalysed.shows = JSON.parse(shows).data;
                 App
+                    .render()
+                    .setupEvents();
+            }
+
+            function deleteTitle(id) {
+                State.titles = State.titles.filter(title => title.id != id);
+                App
                 .render()
                 .setupEvents();
             }
 
             function setupEvents() {
-                console.log("setupEvents");
+                let deleteTitle = document.querySelectorAll(".delete")
+                    .forEach(function (button) {
+                        button.addEventListener("click", () => App.deleteTitle(button.id))
+                    })
             }
 
 
-            return { State, render, setupEvents, setTitles, setRecommended, setTitlesAnalysed }
+            return { State, render, setupEvents, setTitles, setRecommended, setTitlesAnalysed, deleteTitle }
 
         })();
 
@@ -153,7 +219,7 @@
 
         async function main() {
             var pyodide = await loadPyodide({
-                indexURL : "https://cdn.jsdelivr.net/pyodide/v0.20.0/full/"
+                indexURL: "https://cdn.jsdelivr.net/pyodide/v0.20.0/full/"
             });
             await pyodide.loadPackage("pandas");
             await pyodide.runPythonAsync(`
@@ -227,7 +293,6 @@
 
                 
             `);
-            pyodide.runPython("test.py");
         }
         main();
 
