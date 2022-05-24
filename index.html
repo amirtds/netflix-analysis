@@ -219,6 +219,7 @@
     </script>
     <script>
         const worker = new Worker('worker.js');
+        worker.postMessage("");
         worker.onmessage = function (event) {
             if (event.data.type === 'titles') {
                 App.setTitles(event.data.titles);
