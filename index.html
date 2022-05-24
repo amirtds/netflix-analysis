@@ -223,7 +223,8 @@
         worker.onmessage = function (event) {
             console.log(event.data);
             if (event.data.type === 'titles') {
-                App.setTitles(event.data.titles);
+                titles = JSON.parse(event.data.titles);
+                App.setTitles(titles);
             } else if (event.data.type === 'recommended') {
                 App.setRecommended(event.data.movies, event.data.shows);
             } else if (event.data.type === 'titlesAnalysed') {
