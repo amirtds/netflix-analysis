@@ -216,91 +216,19 @@
         App
             .render()
             .setupEvents();
-
-        async function main() {
-            var pyodide = await loadPyodide({
-                indexURL: "https://cdn.jsdelivr.net/pyodide/v0.20.0/full/"
-            });
-            await pyodide.loadPackage("pandas");
-            // load and sanitize Netflix Data and get list of all the titles
-            await pyodide.runPythonAsync(`
-                import js
-                import pandas as pd
-                from pyodide.http import pyfetch
-                response = await pyfetch("https://raw.githubusercontent.com/amirtds/kaggle-netflix-tv-shows-and-movies/main/titles.csv")
-                if response.status == 200:
-                    with open("titles.csv", "wb") as f:
-                        f.write(await response.bytes())
-                # 1. loading the csv file
-                all_titles = pd.read_csv("titles.csv")
-                # 2. Sanitizing the data
-                # Drop unnecessary columns
-                all_titles = all_titles.drop(
-                    columns=[
-                        "age_certification",
-                        "seasons",
-                        "imdb_id",
-                    ]
-                )
-                # Drop rows with null values for important columns
-                sanitized_titles = all_titles.dropna(
-                    subset=[
-                        "id",
-                        "title",
-                        "release_year",
-                        "genres",
-                        "production_countries",
-                        "imdb_score",
-                        "imdb_votes",
-                        "tmdb_score",
-                    ]
-                )
-                titles_list = sanitized_titles.head(10).to_json(orient="table")
-                # Set titles to first 10 titles
-                js.window.App.setTitles(titles_list)
-
-                
-            `);
-            // Calculate recommendation score based on imdb and tmdb scores and create list of recommened titles
-            await pyodide.runPython(`
-                # 3. Create recommendation list for Shows and Movies
-                # 3.1 add new colum recommendation_score
-                recommened_titles = sanitized_titles.copy()
-                # Set recommendation score based on imdb votes, imdb score, tmdb score and popularity
-                recommened_titles["recommendation_score"] = (
-                    sanitized_titles["imdb_votes"] * 0.4
-                    + sanitized_titles["imdb_score"] * 0.3
-                    + sanitized_titles["tmdb_score"] * 0.2
-                    + sanitized_titles["tmdb_popularity"] * 0.2
-                )
-
-                recommened_movies = recommened_titles.loc[recommened_titles["type"] == "MOVIE"].sort_values(
-                    by="recommendation_score", ascending=False
-                )
-
-                recommended_shows = recommened_titles.loc[recommened_titles["type"] == "SHOW"].sort_values(
-                    by="recommendation_score", ascending=False
-                )
-
-                recommended_list_mv = recommened_movies.head(5).to_json(orient="table")
-                recommended_list_shw = recommended_shows.head(5).to_json(orient="table")
-                js.window.App.setRecommended(recommended_list_mv, recommended_list_shw)
-            `);
-            // Analyse titles based on release year and findout which year has the most movies and shows produced
-            await pyodide.runPython(`
-                # 4. Get year that produced the most movies and titles
-                year_most_movies = sanitized_titles.loc[recommened_titles["type"] == "MOVIE"].groupby("release_year").count()["id"].sort_values(ascending=False).head(1)
-                year_most_shows = sanitized_titles.loc[recommened_titles["type"] == "SHOW"].groupby("release_year").count()["id"].sort_values(ascending=False).head(1)
-                js.window.App.setTitlesAnalysed(year_most_movies.to_json(orient="table"), year_most_shows.to_json(orient="table"))
-
-                # Get year that produced the most movies and titles
-                year_most_movies = sanitized_titles.loc[recommened_titles["type"] == "MOVIE"].groupby("release_year").count()["id"].sort_values(ascending=False).head(1).to_json(orient="table")
-                year_most_titles = sanitized_titles.loc[recommened_titles["type"] == "SHOW"].groupby("release_year").count()["id"].sort_values(ascending=False).head(1).to_json(orient="table")
-                js.window.App.setTitlesAnalysed(year_most_movies, year_most_titles)
-            `)
-        }
-        main();
-
+    </script>
+    <script>
+        const worker = new Worker('worker.js');
+        worker.onmessage = function (event) {
+            console.log(event.data);
+            if (event.data.type === 'titles') {
+                App.setTitles(event.data.titles);
+            } else if (event.data.type === 'recommended') {
+                App.setRecommended(event.data.movies, event.data.shows);
+            } else if (event.data.type === 'titlesAnalysed') {
+                App.setTitlesAnalysed(event.data.movies, event.data.shows);
+            }
+        };
     </script>
 
 
