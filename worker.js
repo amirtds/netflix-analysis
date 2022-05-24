@@ -20,7 +20,9 @@ self.onmessage = async function(e){
                 self.pyodide.globals.set("titlesCSV", titlesCSV);
                 let titles_list = await self.pyodide.runPythonAsync(`
                     import pandas as pd
-                    all_titles = pd.read_csv(titlesCSV)
+                    import io
+                    csv_buffer = io.StringIO(titlesCSV)
+                    all_titles = pd.read_csv(csv_buffer)
                     # 2. Sanitizing the data
                     # Drop unnecessary columns
                     all_titles = all_titles.drop(
