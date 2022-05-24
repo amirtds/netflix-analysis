@@ -10,38 +10,45 @@ let initialized = initialize();
 
 self.onmessage = async function(e){
     await initialized;
-    let titles_list = await self.pyodide.runPythonAsync(`
-        import pandas as pd
-        from pyodide.http import pyfetch
-        response = await pyfetch("https://raw.githubusercontent.com/amirtds/kaggle-netflix-tv-shows-and-movies/main/titles.csv")
-        if response.status == 200:
-            with open("titles.csv", "wb") as f:
-                f.write(await response.bytes())
-        # 1. loading the csv file
-        all_titles = pd.read_csv("titles.csv")
-        # 2. Sanitizing the data
-        # Drop unnecessary columns
-        all_titles = all_titles.drop(
-            columns=[
-                "age_certification",
-                "seasons",
-                "imdb_id",
-            ]
-        )
-        # Drop rows with null values for important columns
-        sanitized_titles = all_titles.dropna(
-            subset=[
-                "id",
-                "title",
-                "release_year",
-                "genres",
-                "production_countries",
-                "imdb_score",
-                "imdb_votes",
-                "tmdb_score",
-            ]
-        )
-        sanitized_titles.head(10).to_json(orient="table")
-    `);
-    self.postMessage({"type": "titles", "titles": titles_list});
+    const getCSV = new XMLHttpRequest();
+    getCSV.open("GET", "https://raw.githubusercontent.com/amirtds/kaggle-netflix-tv-shows-and-movies/main/titles.csv", true);
+    getCSV.onreadystatechange = async function() {
+        if (getCSV.readyState === 4) {
+            if (getCSV.status === 200) {
+                const titlesCSV = getCSV.responseText;
+                self.pyodide.globals.set("titlesCSV", titlesCSV);
+                let titles_list = await self.pyodide.runPythonAsync(`
+                    import pandas as pd
+                    all_titles = pd.read_csv(titlesCSV)
+                    # 2. Sanitizing the data
+                    # Drop unnecessary columns
+                    all_titles = all_titles.drop(
+                        columns=[
+                            "age_certification",
+                            "seasons",
+                            "imdb_id",
+                        ]
+                    )
+                    # Drop rows with null values for important columns
+                    sanitized_titles = all_titles.dropna(
+                        subset=[
+                            "id",
+                            "title",
+                            "release_year",
+                            "genres",
+                            "production_countries",
+                            "imdb_score",
+                            "imdb_votes",
+                            "tmdb_score",
+                        ]
+                    )
+                    sanitized_titles.head(10).to_json(orient="table")
+                `);
+            self.postMessage({"type": "titles", "titles": titles_list});
+            }
+        }
+    };
+
+
+
 }
