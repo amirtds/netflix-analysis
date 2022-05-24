@@ -12,6 +12,7 @@ self.onmessage = async function(e){
     await initialized;
     const getCSV = new XMLHttpRequest();
     getCSV.open("GET", "https://raw.githubusercontent.com/amirtds/kaggle-netflix-tv-shows-and-movies/main/titles.csv", true);
+    getCSV.send(null);
     getCSV.onreadystatechange = async function() {
         if (getCSV.readyState === 4) {
             if (getCSV.status === 200) {
