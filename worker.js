@@ -18,6 +18,7 @@ self.onmessage = async function(e){
             if (getCSV.status === 200) {
                 const titlesCSV = getCSV.responseText;
                 self.pyodide.globals.set("titlesCSV", titlesCSV);
+                getCSV.onreadystatechange = null;
                 let titles_list = await self.pyodide.runPythonAsync(`
                     import pandas as pd
                     import io
@@ -51,7 +52,6 @@ self.onmessage = async function(e){
             }
         }
     };
-    getCSV.onreadystatechange = null;
 
 
 
