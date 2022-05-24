@@ -43,5 +43,5 @@ self.onmessage = async function(e){
         )
         sanitized_titles.head(10).to_json(orient="table")
     `);
-    self.postMessage({"type": "titles", "data": titles_list});
+    self.postMessage({"type": "titles", "titles": titles_list});
 }
