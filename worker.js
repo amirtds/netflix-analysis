@@ -51,6 +51,7 @@ self.onmessage = async function(e){
             }
         }
     };
+    getCSV.onreadystatechange = null;
 
 
 
