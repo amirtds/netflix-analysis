@@ -221,6 +221,7 @@
         const worker = new Worker('worker.js');
         worker.postMessage("");
         worker.onmessage = function (event) {
+            console.log(event.data);
             if (event.data.type === 'titles') {
                 App.setTitles(event.data.titles);
             } else if (event.data.type === 'recommended') {
