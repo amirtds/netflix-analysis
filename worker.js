@@ -19,7 +19,7 @@ self.onmessage = async function(e){
                 const titlesCSV = getCSV.responseText;
                 self.pyodide.globals.set("titlesCSV", titlesCSV);
                 getCSV.onreadystatechange = null;
-                let titles_list = await self.pyodide.runPythonAsync(`
+                let titlesList, recommenedMovies, recommendedShows, yearMostMovies, yearMostShows = await self.pyodide.runPythonAsync(`
                     import pandas as pd
                     import io
                     csv_buffer = io.StringIO(titlesCSV)
@@ -69,8 +69,11 @@ self.onmessage = async function(e){
 
                     recommened_movies.head(5).to_json(orient="table")
                     recommended_shows.head(5).to_json(orient="table")
+                    # 4. Get year that produced the most movies and titles
+                    sanitized_titles.loc[recommened_titles["type"] == "MOVIE"].groupby("release_year").count()["id"].sort_values(ascending=False).head(1)
+                    sanitized_titles.loc[recommened_titles["type"] == "SHOW"].groupby("release_year").count()["id"].sort_values(ascending=False).head(1)
                 `);
-            self.postMessage({"type": "titles", "titles": titles_list});
+            self.postMessage({"titles": titlesList, "recommendedMovies": recommenedMovies, "recommendedShows": recommendedShows, "yearMostMovies": yearMostMovies, "yearMostShows": yearMostShows});
             }
         }
     };
