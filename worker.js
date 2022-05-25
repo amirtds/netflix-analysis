@@ -47,6 +47,28 @@ self.onmessage = async function(e){
                         ]
                     )
                     sanitized_titles.head(10).to_json(orient="table")
+
+                    # 3. Create recommendation list for Shows and Movies
+                    # 3.1 add new colum recommendation_score
+                    recommened_titles = sanitized_titles.copy()
+                    # Set recommendation score based on imdb votes, imdb score, tmdb score and popularity
+                    recommened_titles["recommendation_score"] = (
+                        sanitized_titles["imdb_votes"] * 0.4
+                        + sanitized_titles["imdb_score"] * 0.3
+                        + sanitized_titles["tmdb_score"] * 0.2
+                        + sanitized_titles["tmdb_popularity"] * 0.2
+                    )
+
+                    recommened_movies = recommened_titles.loc[recommened_titles["type"] == "MOVIE"].sort_values(
+                        by="recommendation_score", ascending=False
+                    )
+
+                    recommended_shows = recommened_titles.loc[recommened_titles["type"] == "SHOW"].sort_values(
+                        by="recommendation_score", ascending=False
+                    )
+
+                    recommened_movies.head(5).to_json(orient="table")
+                    recommended_shows.head(5).to_json(orient="table")
                 `);
             self.postMessage({"type": "titles", "titles": titles_list});
             }
