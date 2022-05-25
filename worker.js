@@ -70,8 +70,8 @@ self.onmessage = async function(e){
                     recommened_movies.head(5).to_json(orient="table")
                     recommended_shows.head(5).to_json(orient="table")
                     # 4. Get year that produced the most movies and titles
-                    sanitized_titles.loc[recommened_titles["type"] == "MOVIE"].groupby("release_year").count()["id"].sort_values(ascending=False).head(1)
-                    sanitized_titles.loc[recommened_titles["type"] == "SHOW"].groupby("release_year").count()["id"].sort_values(ascending=False).head(1)
+                    sanitized_titles.loc[recommened_titles["type"] == "MOVIE"].groupby("release_year").count()["id"].sort_values(ascending=False).head(1).to_json(orient="table")
+                    sanitized_titles.loc[recommened_titles["type"] == "SHOW"].groupby("release_year").count()["id"].sort_values(ascending=False).head(1).to_json(orient="table")
                 `);
             self.postMessage({"titles": titlesList, "recommendedMovies": recommenedMovies, "recommendedShows": recommendedShows, "yearMostMovies": yearMostMovies, "yearMostShows": yearMostShows});
             }
