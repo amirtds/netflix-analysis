@@ -51,35 +51,39 @@ self.onmessage = async function(e){
                 let recommendations = await self.pyodide.runPythonAsync(`
                     # 3. Create recommendation list for Shows and Movies
                     # 3.1 add new colum recommendation_score
-                    recommened_titles = sanitized_titles.copy()
+                    recommended_titles = sanitized_titles.copy()
                     # Set recommendation score based on imdb votes, imdb score, tmdb score and popularity
-                    recommened_titles["recommendation_score"] = (
+                    recommended_titles["recommendation_score"] = (
                         sanitized_titles["imdb_votes"] * 0.4
                         + sanitized_titles["imdb_score"] * 0.3
                         + sanitized_titles["tmdb_score"] * 0.2
                         + sanitized_titles["tmdb_popularity"] * 0.2
                     )
 
-                    recommended_movies = recommened_titles.loc[recommened_titles["type"] == "MOVIE"].sort_values(
+                    recommended_movies = recommended_titles.loc[recommended_titles["type"] == "MOVIE"].sort_values(
                         by="recommendation_score", ascending=False
                     )
 
-                    recommended_shows = recommened_titles.loc[recommened_titles["type"] == "SHOW"].sort_values(
+                    recommended_shows = recommended_titles.loc[recommended_titles["type"] == "SHOW"].sort_values(
                         by="recommendation_score", ascending=False
                     )
-                    {
+                    recommendations = {
                         "movies": recommended_movies.head(5).to_json(orient="table"),
-                        "shows": recommended_shows.head(15).to_json(orient="table"),
+                        "shows": recommended_shows.head(5).to_json(orient="table"),
                     }
+                    recommendations
                 `);
                 let facts = await self.pyodide.runPythonAsync(`
                     # 4. Get year that produced the most movies and titles
-                    {
-                        "movies": sanitized_titles.loc[recommened_titles["type"] == "MOVIE"].groupby("release_year").count()["id"].sort_values(ascending=False).head(1),
-                        "shows": sanitized_titles.loc[recommened_titles["type"] == "SHOW"].groupby("release_year").count()["id"].sort_values(ascending=False).head(1),
+                    facts_movies = sanitized_titles.loc[recommended_titles["type"] == "MOVIE"].groupby("release_year").count()["id"].sort_values(ascending=False).head(1)
+                    facts_shows = sanitized_titles.loc[recommended_titles["type"] == "SHOW"].groupby("release_year").count()["id"].sort_values(ascending=False).head(1)
+                    facts = {
+                        "movies": facts_movies.to_json(orient="table"),
+                        "shows": facts_shows.to_json(orient="table"),
                     }
+                    facts
                 `);
-            self.postMessage({"titles": titlesList, "recommendedMovies": recommendations.movies, "recommendedShows": recommendations.shows, "yearMostMovies": facts.movies, "yearMostShows": facts.shows});
+            self.postMessage({"titles": titlesList, "recommendedMovies": recommendations.toJs({ dict_converter: Object.fromEntries }).movies, "recommendedShows": recommendations.toJs({ dict_converter: Object.fromEntries }).shows, "yearMostMovies": facts.toJs({ dict_converter: Object.fromEntries }).movies, "yearMostShows": facts.toJs({ dict_converter: Object.fromEntries }).shows});
             }
         }
     };
