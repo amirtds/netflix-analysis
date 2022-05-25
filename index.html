@@ -221,7 +221,6 @@
         const worker = new Worker('worker.js');
         worker.postMessage("");
         worker.onmessage = function (event) {
-            console.log(event.data);
             App.setTitles(event.data.titles);
             App.setRecommended(event.data.recommendedMovies, event.data.recommendedShows);
             App.setTitlesAnalysed(event.data.yearMostMovies, event.data.yearMostShows);
