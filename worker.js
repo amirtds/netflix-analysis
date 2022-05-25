@@ -19,7 +19,7 @@ self.onmessage = async function(e){
                 const titlesCSV = getCSV.responseText;
                 self.pyodide.globals.set("titlesCSV", titlesCSV);
                 getCSV.onreadystatechange = null;
-                let titlesList, recommenedMovies, recommendedShows, yearMostMovies, yearMostShows = await self.pyodide.runPythonAsync(`
+                let titlesList = await self.pyodide.runPythonAsync(`
                     import pandas as pd
                     import io
                     csv_buffer = io.StringIO(titlesCSV)
@@ -47,7 +47,8 @@ self.onmessage = async function(e){
                         ]
                     )
                     sanitized_titles.head(10).to_json(orient="table")
-
+                `);
+                let recommendations = await self.pyodide.runPythonAsync(`
                     # 3. Create recommendation list for Shows and Movies
                     # 3.1 add new colum recommendation_score
                     recommened_titles = sanitized_titles.copy()
@@ -66,14 +67,19 @@ self.onmessage = async function(e){
                     recommended_shows = recommened_titles.loc[recommened_titles["type"] == "SHOW"].sort_values(
                         by="recommendation_score", ascending=False
                     )
-
-                    recommened_movies.head(5).to_json(orient="table")
-                    recommended_shows.head(5).to_json(orient="table")
-                    # 4. Get year that produced the most movies and titles
-                    sanitized_titles.loc[recommened_titles["type"] == "MOVIE"].groupby("release_year").count()["id"].sort_values(ascending=False).head(1).to_json(orient="table")
-                    sanitized_titles.loc[recommened_titles["type"] == "SHOW"].groupby("release_year").count()["id"].sort_values(ascending=False).head(1).to_json(orient="table")
+                    {
+                        "movies": recommended_movies.head(5).to_json(orient="table"),
+                        "shows": recommended_shows.head(15).to_json(orient="table"),
+                    }
                 `);
-            self.postMessage({"titles": titlesList, "recommendedMovies": recommenedMovies, "recommendedShows": recommendedShows, "yearMostMovies": yearMostMovies, "yearMostShows": yearMostShows});
+                let facts = await self.pyodide.runPythonAsync(`
+                    # 4. Get year that produced the most movies and titles
+                    {
+                        "movies: sanitized_titles.loc[recommened_titles["type"] == "MOVIE"].groupby("release_year").count()["id"].sort_values(ascending=False).head(1).to_json(orient="table"),
+                        "shows: sanitized_titles.loc[recommened_titles["type"] == "SHOW"].groupby("release_year").count()["id"].sort_values(ascending=False).head(1).to_json(orient="table"),
+                    }
+                `);
+            self.postMessage({"titles": titlesList, "recommendedMovies": recommendations.movies, "recommendedShows": recommendations.shows, "yearMostMovies": facts.movies, "yearMostShows": facts.shows});
             }
         }
     };
