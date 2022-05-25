@@ -75,8 +75,8 @@ self.onmessage = async function(e){
                 let facts = await self.pyodide.runPythonAsync(`
                     # 4. Get year that produced the most movies and titles
                     {
-                        "movies: sanitized_titles.loc[recommened_titles["type"] == "MOVIE"].groupby("release_year").count()["id"].sort_values(ascending=False).head(1).to_json(orient="table"),
-                        "shows: sanitized_titles.loc[recommened_titles["type"] == "SHOW"].groupby("release_year").count()["id"].sort_values(ascending=False).head(1).to_json(orient="table"),
+                        "movies": sanitized_titles.loc[recommened_titles["type"] == "MOVIE"].groupby("release_year").count()["id"].sort_values(ascending=False).head(1),
+                        "shows": sanitized_titles.loc[recommened_titles["type"] == "SHOW"].groupby("release_year").count()["id"].sort_values(ascending=False).head(1),
                     }
                 `);
             self.postMessage({"titles": titlesList, "recommendedMovies": recommendations.movies, "recommendedShows": recommendations.shows, "yearMostMovies": facts.movies, "yearMostShows": facts.shows});
