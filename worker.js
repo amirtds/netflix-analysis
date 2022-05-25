@@ -60,7 +60,7 @@ self.onmessage = async function(e){
                         + sanitized_titles["tmdb_popularity"] * 0.2
                     )
 
-                    recommened_movies = recommened_titles.loc[recommened_titles["type"] == "MOVIE"].sort_values(
+                    recommended_movies = recommened_titles.loc[recommened_titles["type"] == "MOVIE"].sort_values(
                         by="recommendation_score", ascending=False
                     )
 
